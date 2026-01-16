@@ -13,11 +13,7 @@ func TestOptions(t *testing.T) {
 	var op TemplateOp
 	op.FS = testFS
 
-	equal := func(expectedFile string, data []byte) bool {
-		expectedData, err := op.readFile(expectedFile)
-		if err != nil {
-			t.Fatalf("%v", err)
-		}
+	equal := func(expectedData, data []byte) bool {
 		n := len(data)
 		if n != len(expectedData) {
 			return false
@@ -47,9 +43,17 @@ func TestOptions(t *testing.T) {
 		if err != nil {
 			t.Fatalf("execute: %v", err)
 		}
+		expectedData, err := op.readFile(expectedFile)
+		if err != nil {
+			t.Fatalf("%v", err)
+		}
 		data := buf.Bytes()
-		if !equal(expectedFile, data) {
-			t.Fatalf("output (expected %s):\n%s", expectedFile, data)
+		if !equal(expectedData, data) {
+			t.Fatalf("expected %s (%d bytes), got %d bytes:\n%s",
+				expectedFile,
+				len(expectedData),
+				len(data),
+				data)
 		}
 	}
 	op.YamlFiles = []string{"test/properties.yaml"}

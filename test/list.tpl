@@ -1,3 +1,3 @@
-{{- range $i, $x := .list}}
+{{- range $i, $x := .list -}}
 x={{$x}}
-{{- end}}
+{{end -}}
