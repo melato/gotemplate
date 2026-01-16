@@ -24,6 +24,7 @@ func TestOptions(t *testing.T) {
 	}
 	verify := func(templateFile, expectedFile string, options Options) {
 		op := TemplateOp{Options: options}
+		op.Init()
 		op.FS = testFS
 		inputData, err := op.readFile(templateFile)
 		if err != nil {
@@ -71,6 +72,14 @@ func TestOptions(t *testing.T) {
 		YamlFiles: []string{"test/properties.yaml"},
 		KeyFiles:  []string{"b=test/b.txt"},
 	})
+	verify("test/func_file.tpl", "test/a3.txt", Options{
+		YamlFiles: []string{"test/properties.yaml"},
+	})
+	verify("test/func_json.tpl", "test/a3.txt", Options{
+		YamlFiles: []string{"test/properties.yaml"},
+	})
+	verify("test/func_yaml.tpl", "test/a1.txt", Options{})
+
 	verify("test/a.tpl", "test/a3.txt", Options{
 		YamlFiles: []string{"test/properties.yaml"},
 		JsonFiles: []string{"b=test/b.json"},

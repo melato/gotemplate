@@ -2,6 +2,7 @@ package gotemplate
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -9,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+
+	"gopkg.in/yaml.v2"
 )
 
 type TemplateOp struct {
@@ -26,6 +29,38 @@ type TemplateOp struct {
 func (t *TemplateOp) Init() error {
 	t.FileMode = "0664"
 	t.Delims = "{{,}}"
+	t.Funcs = make(template.FuncMap)
+	t.Funcs["file"] = func(file string) (string, error) {
+		data, err := t.readFile(file)
+		if err != nil {
+			return "", err
+		}
+		return string(data), nil
+	}
+	t.Funcs["json"] = func(file string) (any, error) {
+		data, err := t.readFile(file)
+		if err != nil {
+			return nil, err
+		}
+		var v any
+		err = json.Unmarshal(data, &v)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+	t.Funcs["yaml"] = func(file string) (map[string]any, error) {
+		data, err := t.readFile(file)
+		if err != nil {
+			return nil, err
+		}
+		var v map[string]any
+		err = yaml.Unmarshal(data, &v)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
 	return nil
 }
 
