@@ -23,7 +23,10 @@ func verifyTemplate(t *testing.T, templateFile, expectedFile string, options Opt
 		return true
 	}
 	op := TemplateOp{Options: options}
-	op.DefineFuncs()
+	var f FileFunctions
+	op.SetFunc("file", f.File)
+	op.SetFunc("json", f.Json)
+	op.SetFunc("yaml", f.Yaml)
 	op.FS = testFS
 	inputData, err := op.readFile(templateFile)
 	if err != nil {

@@ -16,7 +16,27 @@ var usageData []byte
 
 type App struct {
 	gotemplate.TemplateOp
-	Version bool `name:"version" usage:"print version and exit"`
+	FileFunctions bool `name:"files" usage:"define functions that read files"`
+	Version       bool `name:"version" usage:"print version and exit"`
+}
+
+func (t *App) DefineFuncs() {
+	if !t.FileFunctions {
+		return
+	}
+	var f gotemplate.FileFunctions
+	t.SetFunc("file", f.File)
+	t.SetFunc("json", f.Json)
+	t.SetFunc("yaml", f.Yaml)
+}
+
+func (t *App) Configured() error {
+	err := t.TemplateOp.Configured()
+	if err != nil {
+		return err
+	}
+	t.DefineFuncs()
+	return nil
 }
 
 func (t *App) Run() error {

@@ -7,6 +7,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// FileFunctions defines some functions that read files from the filesystem
+// These functions can be added in the template FuncMap
 type FileFunctions struct {
 }
 

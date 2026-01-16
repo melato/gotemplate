@@ -16,7 +16,6 @@ type TemplateOp struct {
 	OutputFile   string `name:"o" usage:"output file"`
 	FileMode     string `name:"mode" usage:"output file mode"`
 	Delims       string `name:"delims" usage:"template left,right delims, separated by ','"`
-	AllowFiles   bool   `name:"files" usage:"define functions that read files"`
 	leftDelim    string
 	rightDelim   string
 
@@ -30,14 +29,11 @@ func (t *TemplateOp) Init() error {
 	return nil
 }
 
-func (t *TemplateOp) DefineFuncs() {
+func (t *TemplateOp) SetFunc(name string, f any) {
 	if t.Funcs == nil {
 		t.Funcs = make(template.FuncMap)
 	}
-	var f FileFunctions
-	t.Funcs["file"] = f.File
-	t.Funcs["json"] = f.Json
-	t.Funcs["yaml"] = f.Yaml
+	t.Funcs[name] = f
 }
 
 func (t *TemplateOp) Configured() error {
@@ -48,9 +44,6 @@ func (t *TemplateOp) Configured() error {
 		}
 		t.leftDelim = left
 		t.rightDelim = right
-	}
-	if t.AllowFiles {
-		t.DefineFuncs()
 	}
 	return nil
 }

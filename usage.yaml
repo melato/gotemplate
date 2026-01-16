@@ -1,0 +1,12 @@
+short: substitute variables into a Go template  
+long: |
+  uses Go text/template, to substitute values into a template.
+  
+  The template data is constructed using options:
+    -f [key=]{yaml-file}
+    -json [key=]{json-file}
+    -F key=file
+    -D key=value  
+  
+    All keys used must be unique,
+    so that the result will not depend on the options order
