@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v2"
@@ -22,6 +21,9 @@ type Options struct {
 }
 
 func (t *Options) readFile(file string) ([]byte, error) {
+	if file == "" {
+		return nil, fmt.Errorf("empty filename")
+	}
 	if t.FS == nil {
 		return os.ReadFile(file)
 	} else {
@@ -29,23 +31,14 @@ func (t *Options) readFile(file string) ([]byte, error) {
 	}
 }
 
-func (t *Options) SetFile(properties Properties, keys []string, file string) error {
+type unmarshalF func([]byte, any) error
+
+func (t *Options) unmarshalFile(builder *builder, key string, file string, unmarshal unmarshalF) error {
 	data, err := t.readFile(file)
 	if err != nil {
 		return err
 	}
-	var fileProperties Properties
-	err = yaml.Unmarshal(data, &fileProperties)
-	if err != nil {
-		return err
-	}
-	if len(keys) == 0 {
-		for key, value := range fileProperties {
-			properties[key] = value
-		}
-		return nil
-	}
-	return properties.Set(keys, fileProperties)
+	return builder.Unmarshal(key, data, unmarshal)
 }
 
 // ParseKeyValue - parse a string of the form <key1[.key2]...>=<value>
@@ -62,91 +55,97 @@ func (t *Options) ParseKeyValue(keyValue string) ([]string, string) {
 	return keys, value
 }
 
-func (t *Options) Apply(properties Properties) error {
-	for _, kvFile := range t.YamlFiles {
-		keys, file := t.ParseKeyValue(kvFile)
-		err := t.SetFile(properties, keys, file)
-		if err != nil {
-			return err
-		}
+func (t *Options) addKeyValues(builder *builder, args []string) error {
+	pairs, err := parseKeyValues(args, false)
+	if err != nil {
+		return err
 	}
-	for _, kv := range t.KeyValues {
-		keys, value := t.ParseKeyValue(kv)
-		if len(keys) == 0 {
-			return fmt.Errorf("missing key(s): %s", kv)
-		}
-		err := properties.Set(keys, value)
+	for _, pair := range pairs {
+		err := builder.Set(pair.Key, pair.Value)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
-
 }
 
-type KeyFile struct {
-	Key  string
-	File string
+type keyValue struct {
+	Key   string
+	Value string
 }
 
-func parseKeyFiles(args []string) []KeyFile {
-	result := make([]KeyFile, 0, len(args))
-	for _, arg := range args {
+func parseKeyValues(args []string, allowMissingKeys bool) ([]keyValue, error) {
+	pairs := make([]keyValue, len(args))
+	for i, arg := range args {
 		key, file, hasEq := strings.Cut(arg, "=")
-		var k KeyFile
 		if hasEq {
-			k.Key = key
-			k.File = file
+			pairs[i] = keyValue{key, file}
 		} else {
-			k.Key = filepath.Base(arg)
-			k.File = arg
+			if allowMissingKeys {
+				pairs[i] = keyValue{"", arg}
+			} else {
+				return nil, fmt.Errorf("expected key=file: %s", arg)
+			}
 		}
-		result = append(result, k)
 	}
-	return result
+	return pairs, nil
 }
 
-func (t *Options) addKeyFiles(properties Properties, args []string) error {
-	pairs := parseKeyFiles(args)
+func (t *Options) addKeyFiles(builder *builder, args []string) error {
+	pairs, err := parseKeyValues(args, false)
+	if err != nil {
+		return err
+	}
+
 	for _, p := range pairs {
-		data, err := os.ReadFile(p.File)
+		data, err := t.readFile(p.Value)
 		if err != nil {
 			return err
 		}
-		properties[p.Key] = string(data)
+		builder.Set(p.Key, string(data))
 	}
 	return nil
 }
 
-func (t *Options) addJsonFiles(properties Properties, args []string) error {
-	pairs := parseKeyFiles(args)
+func (t *Options) addEncodedFiles(builder *builder,
+	unmarshal func([]byte, any) error,
+	args []string) error {
+	pairs, err := parseKeyValues(args, true)
+	if err != nil {
+		return err
+	}
 	for _, p := range pairs {
-		data, err := os.ReadFile(p.File)
+		data, err := t.readFile(p.Value)
 		if err != nil {
 			return err
 		}
-		var v any
-		err = json.Unmarshal(data, &v)
-		if err != nil {
-			return err
-		}
-
-		properties[p.Key] = v
+		return builder.Unmarshal(p.Key, data, unmarshal)
 	}
 	return nil
 }
 
-func (t *Options) Values() (Properties, error) {
-	properties := make(Properties)
-	err := t.Apply(properties)
+func (t *Options) apply(builder *builder) error {
+	var err error
 	if err == nil {
-		err = t.addKeyFiles(properties, t.KeyFiles)
+		err = t.addEncodedFiles(builder, yaml.Unmarshal, t.YamlFiles)
 	}
 	if err == nil {
-		err = t.addJsonFiles(properties, t.JsonFiles)
+		err = t.addEncodedFiles(builder, json.Unmarshal, t.JsonFiles)
 	}
+	if err == nil {
+		err = t.addKeyFiles(builder, t.KeyFiles)
+	}
+	if err == nil {
+		err = t.addKeyValues(builder, t.KeyValues)
+	}
+	return err
+}
+
+func (t *Options) Values() (map[string]any, error) {
+	var builder builder
+	err := t.apply(&builder)
 	if err != nil {
 		return nil, err
 	}
-	return properties, nil
+	return builder.values, nil
 }

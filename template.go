@@ -14,7 +14,7 @@ import (
 type TemplateOp struct {
 	TemplateFile string `name:"t" usage:"template file"`
 	OutputFile   string `name:"o" usage:"output file"`
-	FileMode     string `name:"mode" usage:"file mode"`
+	FileMode     string `name:"mode" usage:"output file mode"`
 	Delims       string `name:"delims" usage:"template left,right delims, separated by ','"`
 	leftDelim    string
 	rightDelim   string

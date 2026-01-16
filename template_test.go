@@ -10,9 +10,6 @@ import (
 var testFS embed.FS
 
 func TestOptions(t *testing.T) {
-	var op TemplateOp
-	op.FS = testFS
-
 	equal := func(expectedData, data []byte) bool {
 		n := len(data)
 		if n != len(expectedData) {
@@ -25,7 +22,9 @@ func TestOptions(t *testing.T) {
 		}
 		return true
 	}
-	verify := func(op *TemplateOp, templateFile, expectedFile string) {
+	verify := func(templateFile, expectedFile string, options Options) {
+		op := TemplateOp{Options: options}
+		op.FS = testFS
 		inputData, err := op.readFile(templateFile)
 		if err != nil {
 			t.Fatalf("%v", err)
@@ -56,24 +55,28 @@ func TestOptions(t *testing.T) {
 				data)
 		}
 	}
-	op.YamlFiles = []string{"test/properties.yaml"}
-	verify(&op, "test/a.tpl", "test/a1.txt")
+	verify("test/a.tpl", "test/a1.txt", Options{
+		YamlFiles: []string{"test/properties.yaml"},
+	})
 
-	op.JsonFiles = []string{"test/properties.json"}
-	verify(&op, "test/a.tpl", "test/a1.txt")
+	verify("test/a.tpl", "test/a1.txt", Options{
+		JsonFiles: []string{"test/properties.json"},
+	})
+	verify("test/a.tpl", "test/a2.txt", Options{
+		YamlFiles: []string{"test/properties.yaml"},
+		KeyValues: []string{"b=B2"},
+	})
 
-	op.YamlFiles = []string{"test/properties.yaml"}
-	op.KeyValues = []string{"b=B2"}
-	verify(&op, "test/a.tpl", "test/a2.txt")
+	verify("test/a.tpl", "test/a3.txt", Options{
+		YamlFiles: []string{"test/properties.yaml"},
+		KeyFiles:  []string{"b=test/b.txt"},
+	})
+	verify("test/a.tpl", "test/a3.txt", Options{
+		YamlFiles: []string{"test/properties.yaml"},
+		JsonFiles: []string{"b=test/b.json"},
+	})
 
-	op.YamlFiles = []string{"test/properties.yaml"}
-	op.KeyFiles = []string{"b=test/b.txt"}
-	verify(&op, "test/a.tpl", "test/a3.txt")
-
-	op.YamlFiles = []string{"test/properties.yaml"}
-	op.JsonFiles = []string{"b=test/b.json"}
-	verify(&op, "test/a.tpl", "test/a3.txt")
-
-	op.JsonFiles = []string{"list=test/list.json"}
-	verify(&op, "test/list.tpl", "test/list.txt")
+	verify("test/list.tpl", "test/list.txt", Options{
+		JsonFiles: []string{"list=test/list.json"},
+	})
 }
