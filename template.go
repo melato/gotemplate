@@ -19,6 +19,7 @@ type TemplateOp struct {
 	OutputFile   string `name:"o" usage:"output file"`
 	FileMode     string `name:"mode" usage:"output file mode"`
 	Delims       string `name:"delims" usage:"template left,right delims, separated by ','"`
+	AllowFiles   bool   `name:"files" usage:"define functions that read files"`
 	leftDelim    string
 	rightDelim   string
 
@@ -29,6 +30,10 @@ type TemplateOp struct {
 func (t *TemplateOp) Init() error {
 	t.FileMode = "0664"
 	t.Delims = "{{,}}"
+	return nil
+}
+
+func (t *TemplateOp) DefineFuncs() {
 	t.Funcs = make(template.FuncMap)
 	t.Funcs["file"] = func(file string) (string, error) {
 		data, err := t.readFile(file)
@@ -61,7 +66,6 @@ func (t *TemplateOp) Init() error {
 		}
 		return v, nil
 	}
-	return nil
 }
 
 func (t *TemplateOp) Configured() error {
@@ -72,6 +76,9 @@ func (t *TemplateOp) Configured() error {
 		}
 		t.leftDelim = left
 		t.rightDelim = right
+	}
+	if t.AllowFiles {
+		t.DefineFuncs()
 	}
 	return nil
 }
