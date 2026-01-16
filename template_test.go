@@ -41,7 +41,7 @@ func TestOptions(t *testing.T) {
 		var buf bytes.Buffer
 		tpl, err := op.buildTemplate(inputData)
 		if err != nil {
-			t.Fatalf("buildTemplate: %v", err)
+			t.Fatalf("template %s: %v", templateFile, err)
 		}
 		err = tpl.Execute(&buf, values)
 		if err != nil {
@@ -66,4 +66,7 @@ func TestOptions(t *testing.T) {
 	op.YamlFiles = []string{"test/properties.yaml"}
 	op.JsonFiles = []string{"b=test/b.json"}
 	verify(&op, "test/a.tpl", "test/a3.txt")
+
+	op.JsonFiles = []string{"list=test/list.json"}
+	verify(&op, "test/list.tpl", "test/list.txt")
 }
