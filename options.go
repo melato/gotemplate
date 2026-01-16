@@ -16,7 +16,9 @@ type Options struct {
 	JsonFiles []string `name:"json" usage:"key={json-file} - set the value of <key> to the content of <file>, parsed as JSON"`
 	KeyFiles  []string `name:"F" usage:"key=file - set the value of <key> to the content of <file>"`
 	KeyValues []string `name:"D" usage:"key=value - set a property"`
-	FS        fs.FS
+	// if FS is not null, read files from FS, otherwise use os.ReadFile()
+	// used for testing
+	FS fs.FS
 }
 
 func (t *Options) readFile(file string) ([]byte, error) {

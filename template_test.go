@@ -59,6 +59,9 @@ func TestOptions(t *testing.T) {
 	op.YamlFiles = []string{"test/properties.yaml"}
 	verify(&op, "test/a.tpl", "test/a1.txt")
 
+	op.JsonFiles = []string{"test/properties.json"}
+	verify(&op, "test/a.tpl", "test/a1.txt")
+
 	op.YamlFiles = []string{"test/properties.yaml"}
 	op.KeyValues = []string{"b=B2"}
 	verify(&op, "test/a.tpl", "test/a2.txt")
