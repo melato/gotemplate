@@ -1,4 +1,4 @@
 {{printf "# generated from usage.tpl"}}
-{{file "../usage.yaml"}}
+{{.core}}
 
-{{file "usage_files.yaml"}}
+{{.file_funcs}}
