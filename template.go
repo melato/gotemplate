@@ -25,6 +25,7 @@ type TemplateOp struct {
 
 func (t *TemplateOp) Init() error {
 	t.FileMode = "0664"
+	t.Delims = "{{,}}"
 	return nil
 }
 
@@ -40,19 +41,27 @@ func (t *TemplateOp) Configured() error {
 	return nil
 }
 
-func (t *TemplateOp) Run() error {
-	values, err := t.Values()
-	if err != nil {
-		return err
-	}
+func (t *TemplateOp) buildTemplate(data []byte) (*template.Template, error) {
 	tpl := template.New("x")
 	if t.leftDelim != "" || t.rightDelim != "" {
 		tpl.Delims(t.leftDelim, t.rightDelim)
 	}
 	tpl.Funcs(t.Funcs)
+	_, err := tpl.Parse(string(data))
+	if err != nil {
+		return nil, err
+	}
+	return tpl, nil
+}
+
+func (t *TemplateOp) Run() error {
+	values, err := t.Values()
+	if err != nil {
+		return err
+	}
 	var data []byte
 	if t.TemplateFile != "" {
-		data, err = os.ReadFile(t.TemplateFile)
+		data, err = t.readFile(t.TemplateFile)
 	} else {
 		var buf bytes.Buffer
 		_, err = io.Copy(&buf, os.Stdin)
@@ -60,9 +69,7 @@ func (t *TemplateOp) Run() error {
 			data = buf.Bytes()
 		}
 	}
-	if err == nil {
-		_, err = tpl.Parse(string(data))
-	}
+	tpl, err := t.buildTemplate(data)
 	if err != nil {
 		return err
 	}

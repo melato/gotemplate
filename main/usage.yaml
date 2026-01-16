@@ -1,5 +1,6 @@
 short: substitute variables into a Go template  
 long: |
-  This program takes as input a file that is parsed with Go text/template,
-  and options for specifying parameters,
-  executes the template, and outputs the result.
+  This program uses Go text/template,
+  to substitute values into a template.
+  
+  The template data is constructed using a combination of options.

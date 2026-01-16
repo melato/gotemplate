@@ -3,23 +3,37 @@ package gotemplate
 import (
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"melato.org/yaml"
+	"gopkg.in/yaml.v2"
 )
 
 type Options struct {
-	PropertyKeyFiles []string `name:"f" usage:"yaml file"`
-	KeyFiles         []string `name:"F" usage:"key=file - set the value of <key> to the content of <file>"`
-	KeyValues        []string `name:"D" usage:"key=value - set a property"`
-	JsonFiles        []string `name:"json" usage:"key={json-file} - set the value of <key> to the content of <file>, parsed as JSON"`
+	YamlFiles []string `name:"f" usage:"yaml file"`
+	JsonFiles []string `name:"json" usage:"key={json-file} - set the value of <key> to the content of <file>, parsed as JSON"`
+	KeyFiles  []string `name:"F" usage:"key=file - set the value of <key> to the content of <file>"`
+	KeyValues []string `name:"D" usage:"key=value - set a property"`
+	FS        fs.FS
+}
+
+func (t *Options) readFile(file string) ([]byte, error) {
+	if t.FS == nil {
+		return os.ReadFile(file)
+	} else {
+		return fs.ReadFile(t.FS, file)
+	}
 }
 
 func (t *Options) SetFile(properties Properties, keys []string, file string) error {
+	data, err := t.readFile(file)
+	if err != nil {
+		return err
+	}
 	var fileProperties Properties
-	err := yaml.ReadFile(file, &fileProperties)
+	err = yaml.Unmarshal(data, &fileProperties)
 	if err != nil {
 		return err
 	}
@@ -47,7 +61,7 @@ func (t *Options) ParseKeyValue(keyValue string) ([]string, string) {
 }
 
 func (t *Options) Apply(properties Properties) error {
-	for _, kvFile := range t.PropertyKeyFiles {
+	for _, kvFile := range t.YamlFiles {
 		keys, file := t.ParseKeyValue(kvFile)
 		err := t.SetFile(properties, keys, file)
 		if err != nil {
