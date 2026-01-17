@@ -28,16 +28,13 @@ func verifyTemplate(t *testing.T, templateFile, expectedFile string, options Opt
 	op.SetFunc("json", f.Json)
 	op.SetFunc("yaml", f.Yaml)
 	op.FS = testFS
-	inputData, err := op.readFile(templateFile)
-	if err != nil {
-		t.Fatalf("%v", err)
-	}
+	op.TemplateName = templateFile
 	values, err := op.Values()
 	if err != nil {
 		t.Fatalf("values: %v", err)
 	}
 	var buf bytes.Buffer
-	tpl, err := op.buildTemplate(inputData)
+	tpl, err := op.buildTemplate(nil)
 	if err != nil {
 		t.Fatalf("template %s: %v", templateFile, err)
 	}

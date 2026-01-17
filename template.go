@@ -12,10 +12,11 @@ import (
 )
 
 type TemplateOp struct {
-	TemplateFile string `name:"t" usage:"template file"`
+	TemplateName string `name:"t" usage:"template name or file"`
 	OutputFile   string `name:"o" usage:"output file"`
 	FileMode     string `name:"mode" usage:"output file mode"`
 	Delims       string `name:"delims" usage:"template left,right delims, separated by ','"`
+	List         bool   `name:"list" usage:"list template names and exit"`
 	leftDelim    string
 	rightDelim   string
 
@@ -48,11 +49,20 @@ func (t *TemplateOp) Configured() error {
 	return nil
 }
 
-func (t *TemplateOp) buildTemplate() (*template.Template, error) {
+func (t *TemplateOp) newTemplate() *template.Template {
+	tpl := template.New("")
+	if t.leftDelim != "" || t.rightDelim != "" {
+		tpl.Delims(t.leftDelim, t.rightDelim)
+	}
+	tpl.Funcs(t.Funcs)
+	return tpl
+}
+
+func (t *TemplateOp) buildSingleTemplate() (*template.Template, error) {
 	var data []byte
 	var err error
-	if t.TemplateFile != "" {
-		data, err = t.readFile(t.TemplateFile)
+	if t.TemplateName != "" {
+		data, err = t.readFile(t.TemplateName)
 	} else {
 		var buf bytes.Buffer
 		_, err = io.Copy(&buf, os.Stdin)
@@ -64,11 +74,7 @@ func (t *TemplateOp) buildTemplate() (*template.Template, error) {
 		return nil, err
 	}
 
-	tpl := template.New("x")
-	if t.leftDelim != "" || t.rightDelim != "" {
-		tpl.Delims(t.leftDelim, t.rightDelim)
-	}
-	tpl.Funcs(t.Funcs)
+	tpl := t.newTemplate()
 	_, err = tpl.Parse(string(data))
 	if err != nil {
 		return nil, err
@@ -76,10 +82,49 @@ func (t *TemplateOp) buildTemplate() (*template.Template, error) {
 	return tpl, nil
 }
 
-func (t *TemplateOp) Run() error {
-	tpl, err := t.buildTemplate()
+func (t *TemplateOp) buildTemplate(args []string) (*template.Template, error) {
+	if len(args) == 0 {
+		return t.buildSingleTemplate()
+	}
+	tpl := t.newTemplate()
+	tpl, err := tpl.ParseFiles(args...)
+	if err != nil {
+		return nil, err
+	}
+	if t.TemplateName != "" {
+		if t.List {
+			fmt.Printf("using template %s\n", t.TemplateName)
+		}
+		t0 := tpl.Lookup(t.TemplateName)
+		if t0 == nil {
+			t.listTemplates(tpl)
+			return nil, fmt.Errorf("no such template: %s", t.TemplateName)
+		}
+		return t0, nil
+	} else {
+		for _, t0 := range tpl.Templates() {
+			return t0, nil
+		}
+		return nil, fmt.Errorf("no templates")
+	}
+	return tpl, nil
+}
+
+func (_ *TemplateOp) listTemplates(tpl *template.Template) {
+	fmt.Printf("Templates:\n")
+	for _, tpl := range tpl.Templates() {
+		fmt.Printf("  %s\n", tpl.Name())
+	}
+}
+
+func (t *TemplateOp) Run(args []string) error {
+	tpl, err := t.buildTemplate(args)
 	if err != nil {
 		return err
+	}
+	if t.List {
+		t.listTemplates(tpl)
+		return nil
 	}
 	values, err := t.Values()
 	if err != nil {

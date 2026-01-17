@@ -39,12 +39,12 @@ func (t *App) Configured() error {
 	return nil
 }
 
-func (t *App) Run() error {
+func (t *App) Run(args ...string) error {
 	if t.Version {
 		fmt.Printf("%s\n", version)
 		return nil
 	}
-	return t.TemplateOp.Run()
+	return t.TemplateOp.Run(args)
 }
 
 func main() {
