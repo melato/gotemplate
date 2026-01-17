@@ -48,25 +48,9 @@ func (t *TemplateOp) Configured() error {
 	return nil
 }
 
-func (t *TemplateOp) buildTemplate(data []byte) (*template.Template, error) {
-	tpl := template.New("x")
-	if t.leftDelim != "" || t.rightDelim != "" {
-		tpl.Delims(t.leftDelim, t.rightDelim)
-	}
-	tpl.Funcs(t.Funcs)
-	_, err := tpl.Parse(string(data))
-	if err != nil {
-		return nil, err
-	}
-	return tpl, nil
-}
-
-func (t *TemplateOp) Run() error {
-	values, err := t.Values()
-	if err != nil {
-		return err
-	}
+func (t *TemplateOp) buildTemplate() (*template.Template, error) {
 	var data []byte
+	var err error
 	if t.TemplateFile != "" {
 		data, err = t.readFile(t.TemplateFile)
 	} else {
@@ -76,7 +60,28 @@ func (t *TemplateOp) Run() error {
 			data = buf.Bytes()
 		}
 	}
-	tpl, err := t.buildTemplate(data)
+	if err != nil {
+		return nil, err
+	}
+
+	tpl := template.New("x")
+	if t.leftDelim != "" || t.rightDelim != "" {
+		tpl.Delims(t.leftDelim, t.rightDelim)
+	}
+	tpl.Funcs(t.Funcs)
+	_, err = tpl.Parse(string(data))
+	if err != nil {
+		return nil, err
+	}
+	return tpl, nil
+}
+
+func (t *TemplateOp) Run() error {
+	tpl, err := t.buildTemplate()
+	if err != nil {
+		return err
+	}
+	values, err := t.Values()
 	if err != nil {
 		return err
 	}
