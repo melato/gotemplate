@@ -16,12 +16,14 @@ type TemplateOp struct {
 	OutputFile   string `name:"o" usage:"output file"`
 	FileMode     string `name:"mode" usage:"output file mode"`
 	Delims       string `name:"delims" usage:"template left,right delims, separated by ','"`
-	List         bool   `name:"list" usage:"list template names and exit"`
 	leftDelim    string
 	rightDelim   string
 
 	Options
-	Funcs template.FuncMap `name:"-"`
+	Funcs         template.FuncMap `name:"-"`
+	funcUsage     map[string]FuncUsage
+	funcUsageYaml [][]byte
+	parsedUsage   bool
 }
 
 func (t *TemplateOp) Init() error {
@@ -35,6 +37,26 @@ func (t *TemplateOp) SetFunc(name string, f any) {
 		t.Funcs = make(template.FuncMap)
 	}
 	t.Funcs[name] = f
+}
+
+/*
+Add usage for functions
+*/
+func (t *TemplateOp) AddUsage(funcUsage map[string]FuncUsage) {
+	if t.funcUsage == nil {
+		t.funcUsage = make(map[string]FuncUsage)
+	}
+	for name, u := range funcUsage {
+		t.funcUsage[name] = u
+	}
+}
+
+/*
+Add usage for functions, in YAML
+The usage is parsed when needed
+*/
+func (t *TemplateOp) AddUsageYaml(usageYaml []byte) {
+	t.funcUsageYaml = append(t.funcUsageYaml, usageYaml)
 }
 
 func (t *TemplateOp) Configured() error {
@@ -92,12 +114,8 @@ func (t *TemplateOp) buildTemplate(args []string) (*template.Template, error) {
 		return nil, err
 	}
 	if t.TemplateName != "" {
-		if t.List {
-			fmt.Printf("using template %s\n", t.TemplateName)
-		}
 		t0 := tpl.Lookup(t.TemplateName)
 		if t0 == nil {
-			t.listTemplates(tpl)
 			return nil, fmt.Errorf("no such template: %s", t.TemplateName)
 		}
 		return t0, nil
@@ -110,21 +128,30 @@ func (t *TemplateOp) buildTemplate(args []string) (*template.Template, error) {
 	return tpl, nil
 }
 
-func (_ *TemplateOp) listTemplates(tpl *template.Template) {
+func listTemplates(tpl *template.Template) {
 	fmt.Printf("Templates:\n")
 	for _, tpl := range tpl.Templates() {
 		fmt.Printf("  %s\n", tpl.Name())
 	}
 }
 
-func (t *TemplateOp) Run(args []string) error {
-	tpl, err := t.buildTemplate(args)
+func (t *TemplateOp) ListTemplates(args ...string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("missing template files")
+	}
+	tpl := t.newTemplate()
+	tpl, err := tpl.ParseFiles(args...)
 	if err != nil {
 		return err
 	}
-	if t.List {
-		t.listTemplates(tpl)
-		return nil
+	listTemplates(tpl)
+	return nil
+}
+
+func (t *TemplateOp) Run(args ...string) error {
+	tpl, err := t.buildTemplate(args)
+	if err != nil {
+		return err
 	}
 	values, err := t.Values()
 	if err != nil {

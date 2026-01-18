@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"embed"
 	"testing"
+
+	"melato.org/gotemplate/funcs"
 )
 
 //go:embed test/*
@@ -23,10 +25,7 @@ func verifyTemplate(t *testing.T, templateFile, expectedFile string, options Opt
 		return true
 	}
 	op := TemplateOp{Options: options}
-	var f FileFunctions
-	op.SetFunc("file", f.File)
-	op.SetFunc("json", f.Json)
-	op.SetFunc("yaml", f.Yaml)
+	op.SetFunc("file", funcs.ReadFile)
 	op.FS = testFS
 	op.TemplateName = templateFile
 	values, err := op.Values()
@@ -83,13 +82,8 @@ func TestOptions(t *testing.T) {
 	})
 }
 
-func TestFileFuncs(t *testing.T) {
+func TestFuncs(t *testing.T) {
 	verifyTemplate(t, "test/func_file.tpl", "test/a3.txt", Options{
 		YamlFiles: []string{"test/properties.yaml"},
 	})
-	verifyTemplate(t, "test/func_json.tpl", "test/a3.txt", Options{
-		YamlFiles: []string{"test/properties.yaml"},
-	})
-	verifyTemplate(t, "test/func_yaml.tpl", "test/a1.txt", Options{})
-
 }

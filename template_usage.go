@@ -1,0 +1,86 @@
+package gotemplate
+
+import (
+	"fmt"
+	"sort"
+	"strings"
+
+	"gopkg.in/yaml.v2"
+)
+
+func (t *TemplateOp) GetUsage() (map[string]FuncUsage, error) {
+	if !t.parsedUsage {
+		t.parsedUsage = true
+		for _, data := range t.funcUsageYaml {
+			if t.funcUsage == nil {
+				t.funcUsage = make(map[string]FuncUsage)
+			}
+			err := yaml.Unmarshal(data, &t.funcUsage)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return t.funcUsage, nil
+}
+
+func (t *TemplateOp) ListFuncs() error {
+	usage, err := t.GetUsage()
+	if err != nil {
+		return err
+	}
+	// compute the number of runes in a string
+	runeCount := func(s string) int {
+		var i int
+		for i, _ = range s {
+		}
+		return i + 1
+	}
+	var maxlen int
+	names := make([]string, 0, len(t.Funcs))
+	for name, _ := range t.Funcs {
+		names = append(names, name)
+		w := runeCount(name)
+		if w > maxlen {
+			maxlen = w
+		}
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		summary := ""
+		u, found := usage[name]
+		if found {
+			summary = firstLine(u.Description)
+		}
+		fmt.Printf("%*s: %s\n", maxlen, name, summary)
+	}
+	return nil
+}
+
+func (t *TemplateOp) FuncUsage(name string) error {
+	_, found := t.Funcs[name]
+	if !found {
+		return fmt.Errorf("no such func: %s", name)
+	}
+	usage, err := t.GetUsage()
+	if err != nil {
+		return err
+	}
+	u, found := usage[name]
+	if !found {
+		return nil
+	}
+	paramNames := make([]string, len(u.Params))
+	for i, param := range u.Params {
+		paramNames[i] = param.Name
+	}
+	fmt.Printf("%s(%s)\n", name, strings.Join(paramNames, ", "))
+	fmt.Printf("%s\n", strings.TrimSpace(u.Description))
+	if len(u.Params) > 0 {
+		fmt.Printf("\nParameters:\n")
+	}
+	for _, param := range u.Params {
+		fmt.Printf("%s: %s\n", param.Name, param.Description)
+	}
+	return nil
+}
