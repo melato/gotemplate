@@ -2,6 +2,7 @@ package gotemplate
 
 import (
 	"fmt"
+	"reflect"
 	"sort"
 	"strings"
 
@@ -58,7 +59,7 @@ func (t *TemplateOp) ListFuncs() error {
 }
 
 func (t *TemplateOp) FuncUsage(name string) error {
-	_, found := t.Funcs[name]
+	f, found := t.Funcs[name]
 	if !found {
 		return fmt.Errorf("no such func: %s", name)
 	}
@@ -70,11 +71,19 @@ func (t *TemplateOp) FuncUsage(name string) error {
 	if !found {
 		return nil
 	}
-	paramNames := make([]string, len(u.Params))
-	for i, param := range u.Params {
-		paramNames[i] = param.Name
+	fType := reflect.TypeOf(f)
+
+	n := fType.NumIn()
+	params := make([]string, n)
+	for i := 0; i < n; i++ {
+		pType := fType.In(i)
+		if n == len(u.Params) {
+			params[i] = fmt.Sprintf("%s %v", u.Params[i].Name, pType)
+		} else {
+			params[i] = fmt.Sprintf("%v", pType)
+		}
 	}
-	fmt.Printf("%s(%s)\n", name, strings.Join(paramNames, ", "))
+	fmt.Printf("%s(%s)\n", name, strings.Join(params, ", "))
 	fmt.Printf("%s\n", strings.TrimSpace(u.Description))
 	if len(u.Params) > 0 {
 		fmt.Printf("\nParameters:\n")
