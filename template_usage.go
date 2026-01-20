@@ -58,38 +58,49 @@ func (t *TemplateOp) ListFuncs() error {
 	return nil
 }
 
-func (t *TemplateOp) FuncUsage(name string) error {
-	f, found := t.Funcs[name]
-	if !found {
-		return fmt.Errorf("no such func: %s", name)
-	}
+func (t *TemplateOp) fUsage(name string, fType reflect.Type) error {
 	usage, err := t.GetUsage()
 	if err != nil {
 		return err
 	}
 	u, found := usage[name]
-	if !found {
-		return nil
-	}
-	fType := reflect.TypeOf(f)
-
 	n := fType.NumIn()
 	params := make([]string, n)
 	for i := 0; i < n; i++ {
 		pType := fType.In(i)
-		if n == len(u.Params) {
+		if found && n == len(u.Params) {
 			params[i] = fmt.Sprintf("%s %v", u.Params[i].Name, pType)
 		} else {
 			params[i] = fmt.Sprintf("%v", pType)
 		}
 	}
 	fmt.Printf("%s(%s)\n", name, strings.Join(params, ", "))
-	fmt.Printf("%s\n", strings.TrimSpace(u.Description))
-	if len(u.Params) > 0 {
-		fmt.Printf("\nParameters:\n")
-	}
-	for _, param := range u.Params {
-		fmt.Printf("%s: %s\n", param.Name, param.Description)
+	if found {
+		fmt.Printf("%s\n", strings.TrimSpace(u.Description))
+		if len(u.Params) > 0 {
+			fmt.Printf("\nParameters:\n")
+		}
+		for _, param := range u.Params {
+			fmt.Printf("%s: %s\n", param.Name, param.Description)
+		}
+	} else if n == 0 && fType.NumOut() > 0 {
+		outType := fType.Out(0)
+		n := outType.NumMethod()
+		if n > 0 {
+			fmt.Printf("methods:\n")
+			for i := 0; i < n; i++ {
+				fmt.Printf(" %s\n", outType.Method(i).Name)
+			}
+		}
 	}
 	return nil
+}
+
+func (t *TemplateOp) FuncUsage(name string) error {
+	f, found := t.Funcs[name]
+	if !found {
+		return fmt.Errorf("no such func: %s", name)
+	}
+	fType := reflect.TypeOf(f)
+	return t.fUsage(name, fType)
 }
