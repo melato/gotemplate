@@ -20,10 +20,10 @@ type TemplateOp struct {
 	rightDelim   string
 
 	Options
-	Funcs         template.FuncMap `name:"-"`
-	funcUsage     map[string]FuncUsage
-	funcUsageYaml [][]byte
-	parsedUsage   bool
+	Funcs        template.FuncMap `name:"-"`
+	funcUsage    map[string]string
+	funcUsageTxt [][]byte
+	parsedUsage  bool
 }
 
 func (t *TemplateOp) Init() error {
@@ -42,9 +42,9 @@ func (t *TemplateOp) SetFunc(name string, f any) {
 /*
 Add usage for functions
 */
-func (t *TemplateOp) AddUsage(funcUsage map[string]FuncUsage) {
+func (t *TemplateOp) AddUsage(funcUsage map[string]string) {
 	if t.funcUsage == nil {
-		t.funcUsage = make(map[string]FuncUsage)
+		t.funcUsage = make(map[string]string)
 	}
 	for name, u := range funcUsage {
 		t.funcUsage[name] = u
@@ -52,11 +52,11 @@ func (t *TemplateOp) AddUsage(funcUsage map[string]FuncUsage) {
 }
 
 /*
-Add usage for functions, in YAML
+Add usage for functions, in text format
 The usage is parsed when needed
 */
-func (t *TemplateOp) AddUsageYaml(usageYaml []byte) {
-	t.funcUsageYaml = append(t.funcUsageYaml, usageYaml)
+func (t *TemplateOp) AddUsageTxt(usageTxt []byte) {
+	t.funcUsageTxt = append(t.funcUsageTxt, usageTxt)
 }
 
 func (t *TemplateOp) Configured() error {

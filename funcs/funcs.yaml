@@ -1,6 +1,0 @@
-file:
-  desc: |
-    read a file from the filesystem
-    return its content as a string
-  params:
-  - filename: The file to read

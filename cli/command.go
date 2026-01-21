@@ -19,6 +19,7 @@ func Command(t *gotemplate.TemplateOp) *command.SimpleCommand {
 	cmd.Command("exec").Flags(t).RunFunc(t.Run)
 	cmd.Command("templates").RunFunc(t.ListTemplates)
 	cmd.Command("funcs").RunFunc(t.ListFuncs)
+	cmd.Command("globals").RunFunc(t.ListGlobals)
 	cmd.Command("func").RunFunc(t.FuncUsage)
 	usage.Apply(&cmd, usageData)
 	return &cmd

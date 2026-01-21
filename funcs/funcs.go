@@ -4,15 +4,15 @@ import (
 	_ "embed"
 )
 
-//go:embed funcs.yaml
+//go:embed funcs.txt
 var funcUsage []byte
 
 type Funcs interface {
 	SetFunc(string, any)
-	AddUsageYaml([]byte)
+	AddUsageTxt([]byte)
 }
 
 func AddFuncs(funcs Funcs) {
 	funcs.SetFunc("file", ReadFile)
-	funcs.AddUsageYaml(funcUsage)
+	funcs.AddUsageTxt(funcUsage)
 }
