@@ -1,3 +1,8 @@
+This file contains portions of the output of "go doc text/template",
+which is covered by the Go LICENSE.
+
+Predefined global functions
+
     and
     	Returns the boolean AND of its arguments by returning the
     	first empty argument or the last argument. That is,

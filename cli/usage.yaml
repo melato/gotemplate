@@ -16,19 +16,21 @@ commands:
       The -list option shows you the names of the parsed templates.
       
       The template data is constructed using options:
-        -f [key=]{yaml-file}
-        -json [key=]{json-file}
-        -F key=file
-        -D key=value  
-      
-        All keys used must be unique,
-        so that the result will not depend on the options order
+        -f {properties-file}
+        -D key=value 
+
+        They property files are read first.
+        If -json is specified, the property files are parsed as JSON.
+        Otherwise, they are parsed as YAML.        
   templates:
     short: list templates
     long: |
       parse the argument files as templates and print their names.
   funcs:
     short: list available funcs
+  globals:
+    short: list global funcs
   func:
     short: show usage for a func
+    long: includes built-in functions
     use: <func>

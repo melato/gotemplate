@@ -1,15 +1,11 @@
 package gotemplate
 
 import (
-	_ "embed"
 	"fmt"
 	"reflect"
 	"sort"
 	"strings"
 )
-
-//go:embed global.txt
-var globalUsage []byte
 
 func (t *TemplateOp) GetUsage() (map[string]string, error) {
 	if !t.parsedUsage {
@@ -91,8 +87,7 @@ func (t *TemplateOp) FuncUsage(name string) error {
 		fType := reflect.TypeOf(f)
 		return t.fUsage(name, fType)
 	}
-	globals := make(map[string]string)
-	ParseUsage(globalUsage, "", globals)
+	globals := parseGlobal()
 	desc, found := globals[name]
 	if found {
 		fmt.Printf("%s\n", desc)
@@ -102,8 +97,7 @@ func (t *TemplateOp) FuncUsage(name string) error {
 }
 
 func (t *TemplateOp) ListGlobals() error {
-	globals := make(map[string]string)
-	ParseUsage(globalUsage, "", globals)
+	globals := parseGlobal()
 	names := make([]string, 0, len(globals))
 	for name, _ := range globals {
 		names = append(names, name)
