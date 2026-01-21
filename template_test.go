@@ -70,10 +70,6 @@ func TestOptions(t *testing.T) {
 
 	verifyTemplate(t, "test/a.tpl", "test/a3.txt", Options{
 		YamlFiles: []string{"test/properties.yaml"},
-		KeyFiles:  []string{"b=test/b.txt"},
-	})
-	verifyTemplate(t, "test/a.tpl", "test/a3.txt", Options{
-		YamlFiles: []string{"test/properties.yaml"},
 		JsonFiles: []string{"b=test/b.json"},
 	})
 

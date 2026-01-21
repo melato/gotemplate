@@ -13,7 +13,6 @@ import (
 type Options struct {
 	YamlFiles []string `name:"f" usage:"yaml file"`
 	JsonFiles []string `name:"json" usage:"key={json-file} - set the value of <key> to the content of <file>, parsed as JSON"`
-	KeyFiles  []string `name:"F" usage:"key=file - set the value of <key> to the content of <file>"`
 	KeyValues []string `name:"D" usage:"key=value - set a property"`
 	// if FS is not null, read files from FS, otherwise use os.ReadFile()
 	// used for testing
@@ -91,22 +90,6 @@ func parseKeyValues(args []string, allowMissingKeys bool) ([]keyValue, error) {
 	return pairs, nil
 }
 
-func (t *Options) addKeyFiles(builder *builder, args []string) error {
-	pairs, err := parseKeyValues(args, false)
-	if err != nil {
-		return err
-	}
-
-	for _, p := range pairs {
-		data, err := t.readFile(p.Value)
-		if err != nil {
-			return err
-		}
-		builder.Set(p.Key, string(data))
-	}
-	return nil
-}
-
 func (t *Options) addEncodedFiles(builder *builder,
 	unmarshal func([]byte, any) error,
 	args []string) error {
@@ -131,9 +114,6 @@ func (t *Options) apply(builder *builder) error {
 	}
 	if err == nil {
 		err = t.addEncodedFiles(builder, json.Unmarshal, t.JsonFiles)
-	}
-	if err == nil {
-		err = t.addKeyFiles(builder, t.KeyFiles)
 	}
 	if err == nil {
 		err = t.addKeyValues(builder, t.KeyValues)
