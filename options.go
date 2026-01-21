@@ -12,7 +12,7 @@ import (
 
 type Options struct {
 	YamlFiles []string `name:"f" usage:"yaml file"`
-	JsonFiles []string `name:"json" usage:"key={json-file} - set the value of <key> to the content of <file>, parsed as JSON"`
+	JsonFiles []string `name:"json" usage:"json file"`
 	KeyValues []string `name:"D" usage:"key=value - set a property"`
 	// if FS is not null, read files from FS, otherwise use os.ReadFile()
 	// used for testing
@@ -37,7 +37,7 @@ func (t *Options) unmarshalFile(builder *builder, key string, file string, unmar
 	if err != nil {
 		return err
 	}
-	return builder.Unmarshal(key, data, unmarshal)
+	return builder.Unmarshal(data, unmarshal)
 }
 
 // ParseKeyValue - parse a string of the form <key1[.key2]...>=<value>
@@ -55,15 +55,12 @@ func (t *Options) ParseKeyValue(keyValue string) ([]string, string) {
 }
 
 func (t *Options) addKeyValues(builder *builder, args []string) error {
-	pairs, err := parseKeyValues(args, false)
+	pairs, err := parseKeyValues(args)
 	if err != nil {
 		return err
 	}
 	for _, pair := range pairs {
-		err := builder.Set(pair.Key, pair.Value)
-		if err != nil {
-			return err
-		}
+		builder.Set(pair.Key, pair.Value)
 	}
 	return nil
 }
@@ -73,18 +70,14 @@ type keyValue struct {
 	Value string
 }
 
-func parseKeyValues(args []string, allowMissingKeys bool) ([]keyValue, error) {
+func parseKeyValues(args []string) ([]keyValue, error) {
 	pairs := make([]keyValue, len(args))
 	for i, arg := range args {
 		key, file, hasEq := strings.Cut(arg, "=")
 		if hasEq {
 			pairs[i] = keyValue{key, file}
 		} else {
-			if allowMissingKeys {
-				pairs[i] = keyValue{"", arg}
-			} else {
-				return nil, fmt.Errorf("expected key=file: %s", arg)
-			}
+			return nil, fmt.Errorf("expected key=file: %s", arg)
 		}
 	}
 	return pairs, nil
@@ -92,17 +85,13 @@ func parseKeyValues(args []string, allowMissingKeys bool) ([]keyValue, error) {
 
 func (t *Options) addEncodedFiles(builder *builder,
 	unmarshal func([]byte, any) error,
-	args []string) error {
-	pairs, err := parseKeyValues(args, true)
-	if err != nil {
-		return err
-	}
-	for _, p := range pairs {
-		data, err := t.readFile(p.Value)
+	files []string) error {
+	for _, file := range files {
+		data, err := t.readFile(file)
 		if err != nil {
 			return err
 		}
-		return builder.Unmarshal(p.Key, data, unmarshal)
+		return builder.Unmarshal(data, unmarshal)
 	}
 	return nil
 }
