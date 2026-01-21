@@ -58,23 +58,35 @@ func (t *TemplateOp) ListFuncs() error {
 	return nil
 }
 
+func (t *TemplateOp) funcSignature(name string, fType reflect.Type, isMethod bool, params []Param) {
+	n := fType.NumIn()
+	offset := 0
+	if isMethod {
+		if n == 0 {
+			return
+		}
+		offset = 1
+		n -= 1
+	}
+	args := make([]string, n)
+	for i := 0; i < n; i++ {
+		pType := fType.In(offset + i)
+		if n == len(params) {
+			args[i] = fmt.Sprintf("%s %v", params[i].Name, pType)
+		} else {
+			args[i] = fmt.Sprintf("%v", pType)
+		}
+	}
+	fmt.Printf("%s(%s)\n", name, strings.Join(args, ", "))
+}
+
 func (t *TemplateOp) fUsage(name string, fType reflect.Type) error {
 	usage, err := t.GetUsage()
 	if err != nil {
 		return err
 	}
 	u, found := usage[name]
-	n := fType.NumIn()
-	params := make([]string, n)
-	for i := 0; i < n; i++ {
-		pType := fType.In(i)
-		if found && n == len(u.Params) {
-			params[i] = fmt.Sprintf("%s %v", u.Params[i].Name, pType)
-		} else {
-			params[i] = fmt.Sprintf("%v", pType)
-		}
-	}
-	fmt.Printf("%s(%s)\n", name, strings.Join(params, ", "))
+	t.funcSignature(name, fType, false, u.Params)
 	if found {
 		fmt.Printf("%s\n", strings.TrimSpace(u.Description))
 		if len(u.Params) > 0 {
@@ -83,13 +95,14 @@ func (t *TemplateOp) fUsage(name string, fType reflect.Type) error {
 		for _, param := range u.Params {
 			fmt.Printf("%s: %s\n", param.Name, param.Description)
 		}
-	} else if n == 0 && fType.NumOut() > 0 {
+	} else if fType.NumIn() == 0 && fType.NumOut() > 0 {
 		outType := fType.Out(0)
 		n := outType.NumMethod()
 		if n > 0 {
 			fmt.Printf("methods:\n")
 			for i := 0; i < n; i++ {
-				fmt.Printf(" %s\n", outType.Method(i).Name)
+				method := outType.Method(i)
+				t.funcSignature(method.Name, method.Type, true, nil)
 			}
 		}
 	}

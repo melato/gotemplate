@@ -5,7 +5,10 @@ import (
 	"strings"
 )
 
+// FuncUsage is used to provide documentation for template functions
 type FuncUsage struct {
+	// Description is text describing the function.
+	// The first line is used as a function summary, when printing a list of functions
 	Description string  `yaml:"desc"`
 	Params      []Param `yaml:"params"`
 }
