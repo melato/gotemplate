@@ -11,9 +11,9 @@ import (
 )
 
 type Options struct {
-	YamlFiles []string `name:"f" usage:"yaml file"`
-	JsonFiles []string `name:"json" usage:"json file"`
-	KeyValues []string `name:"D" usage:"key=value - set a property"`
+	PropertyFiles []string `name:"f" usage:"properties file"`
+	Json          bool     `name:"json" usage:"parse property files as JSON"`
+	KeyValues     []string `name:"D" usage:"key=value - set a property"`
 	// if FS is not null, read files from FS, otherwise use os.ReadFile()
 	// used for testing
 	FS fs.FS
@@ -98,11 +98,12 @@ func (t *Options) addEncodedFiles(builder *builder,
 
 func (t *Options) apply(builder *builder) error {
 	var err error
-	if err == nil {
-		err = t.addEncodedFiles(builder, yaml.Unmarshal, t.YamlFiles)
+	unmarshal := yaml.Unmarshal
+	if t.Json {
+		unmarshal = json.Unmarshal
 	}
 	if err == nil {
-		err = t.addEncodedFiles(builder, json.Unmarshal, t.JsonFiles)
+		err = t.addEncodedFiles(builder, unmarshal, t.PropertyFiles)
 	}
 	if err == nil {
 		err = t.addKeyValues(builder, t.KeyValues)

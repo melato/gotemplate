@@ -57,25 +57,26 @@ func verifyTemplate(t *testing.T, templateFile, expectedFile string, options Opt
 
 func TestPropertiesYaml(t *testing.T) {
 	verifyTemplate(t, "test/a.tpl", "test/a1.txt", Options{
-		YamlFiles: []string{"test/properties.yaml"},
+		PropertyFiles: []string{"test/properties.yaml"},
 	})
 }
 
 func TestPropertiesJson(t *testing.T) {
 	verifyTemplate(t, "test/a.tpl", "test/a1.txt", Options{
-		JsonFiles: []string{"test/properties.json"},
+		PropertyFiles: []string{"test/properties.json"},
+		Json:          true,
 	})
 }
 
 func TestYamlAndValues(t *testing.T) {
 	verifyTemplate(t, "test/a.tpl", "test/a2.txt", Options{
-		YamlFiles: []string{"test/properties.yaml"},
-		KeyValues: []string{"b=B2"},
+		PropertyFiles: []string{"test/properties.yaml"},
+		KeyValues:     []string{"b=B2"},
 	})
 }
 
 func TestFuncs(t *testing.T) {
 	verifyTemplate(t, "test/func_file.tpl", "test/a3.txt", Options{
-		YamlFiles: []string{"test/properties.yaml"},
+		PropertyFiles: []string{"test/properties.yaml"},
 	})
 }
