@@ -1,6 +1,8 @@
 package gotemplate
 
 import (
+	"bufio"
+	"iter"
 	"strings"
 )
 
@@ -30,4 +32,15 @@ func maxRunes(names []string) int {
 		}
 	}
 	return maxlen
+}
+
+func iterLines(text string) iter.Seq[string] {
+	return func(yield func(string) bool) {
+		scanner := bufio.NewScanner(strings.NewReader(text))
+		for scanner.Scan() {
+			if !yield(scanner.Text()) {
+				return
+			}
+		}
+	}
 }

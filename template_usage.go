@@ -63,10 +63,12 @@ func (t *TemplateOp) fUsage(name string, fType reflect.Type) error {
 	if err != nil {
 		return err
 	}
-	u, found := usage[name]
+	desc, found := usage[name]
 	t.funcSignature(name, fType, false)
 	if found {
-		fmt.Printf("%s\n", strings.TrimSpace(u))
+		for line := range iterLines(desc) {
+			fmt.Printf("   %s\n", line)
+		}
 	} else if fType.NumIn() == 0 && fType.NumOut() > 0 {
 		outType := fType.Out(0)
 		n := outType.NumMethod()
@@ -87,12 +89,6 @@ func (t *TemplateOp) FuncUsage(name string) error {
 		fType := reflect.TypeOf(f)
 		return t.fUsage(name, fType)
 	}
-	globals := parseGlobal()
-	desc, found := globals[name]
-	if found {
-		fmt.Printf("%s\n", desc)
-		return nil
-	}
 	return fmt.Errorf("no such func: %s", name)
 }
 
@@ -103,10 +99,11 @@ func (t *TemplateOp) ListGlobals() error {
 		names = append(names, name)
 	}
 	sort.Strings(names)
-	maxlen := maxRunes(names)
 	for _, name := range names {
-		summary := firstLine(globals[name])
-		fmt.Printf("%-*s %s\n", maxlen, name, summary)
+		fmt.Printf("%s\n", name)
+		for line := range iterLines(globals[name]) {
+			fmt.Printf("     %s\n", line)
+		}
 	}
 	return nil
 }
