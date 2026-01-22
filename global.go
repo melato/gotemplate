@@ -9,6 +9,6 @@ var globalUsage []byte
 
 func parseGlobal() map[string]string {
 	globals := make(map[string]string)
-	ParseUsage(globalUsage, "Predefined", globals)
+	ParseUsage(globalUsage, "", globals)
 	return globals
 }
