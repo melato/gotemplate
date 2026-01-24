@@ -66,7 +66,7 @@ func (t *TemplateOp) fUsage(name string, fType reflect.Type) error {
 	desc, found := usage[name]
 	t.funcSignature(name, fType, false)
 	if found {
-		for line := range iterLines(desc) {
+		for line := range iterLines(strings.NewReader(desc)) {
 			fmt.Printf("   %s\n", line)
 		}
 	} else if fType.NumIn() == 0 && fType.NumOut() > 0 {
@@ -101,9 +101,20 @@ func (t *TemplateOp) ListGlobals() error {
 	sort.Strings(names)
 	for _, name := range names {
 		fmt.Printf("%s\n", name)
-		for line := range iterLines(globals[name]) {
+		for line := range iterLines(strings.NewReader(globals[name])) {
 			fmt.Printf("     %s\n", line)
 		}
 	}
 	return nil
+}
+
+func (t *TemplateOp) ListPropertyFormats() {
+	names := make([]string, 0, len(propertyParsers))
+	for name, _ := range propertyParsers {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		fmt.Printf("%s\n", name)
+	}
 }

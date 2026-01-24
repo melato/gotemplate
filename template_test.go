@@ -64,7 +64,7 @@ func TestPropertiesYaml(t *testing.T) {
 func TestPropertiesJson(t *testing.T) {
 	verifyTemplate(t, "test/a.tpl", "test/a1.txt", Options{
 		PropertyFiles: []string{"test/properties.json"},
-		Json:          true,
+		Format:        "json",
 	})
 }
 

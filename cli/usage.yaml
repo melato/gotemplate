@@ -22,15 +22,20 @@ commands:
         If -json is specified, the property files are parsed as JSON.
         Otherwise, they are parsed as YAML.        
         In both cases, they must unmarshal into a map[string]any
-  templates:
-    short: list templates
-    long: |
-      parse the argument files as templates and print their names.
-  funcs:
-    short: list available funcs
-  globals:
-    short: list global funcs
-  func:
-    short: show usage for a func
-    long: includes built-in functions
-    use: <func>
+  help:
+    short: provide information
+    commands:
+      formats:
+        short: list available property formats
+      templates:
+        short: list templates
+        long: |
+          parse the argument files as templates and print their names.
+      funcs:
+        short: list available funcs
+      globals:
+        short: list global funcs
+      func:
+        short: show usage for a func
+        long: includes built-in functions
+        use: <func>

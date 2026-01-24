@@ -1,18 +1,15 @@
 package gotemplate
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/fs"
 	"os"
 	"strings"
-
-	"gopkg.in/yaml.v2"
 )
 
 type Options struct {
 	PropertyFiles []string `name:"f" usage:"properties file"`
-	Json          bool     `name:"json" usage:"parse property files as JSON"`
+	Format        string   `name:"format" usage:"property file format"`
 	KeyValues     []string `name:"D" usage:"key=value - set a property"`
 	// if FS is not null, read files from FS, otherwise use os.ReadFile()
 	// used for testing
@@ -54,13 +51,13 @@ func (t *Options) ParseKeyValue(keyValue string) ([]string, string) {
 	return keys, value
 }
 
-func (t *Options) addKeyValues(builder *builder, args []string) error {
+func (t *Options) addKeyValues(values map[string]any, args []string) error {
 	pairs, err := parseKeyValues(args)
 	if err != nil {
 		return err
 	}
 	for _, pair := range pairs {
-		builder.Set(pair.Key, pair.Value)
+		values[pair.Key] = pair.Value
 	}
 	return nil
 }
@@ -83,39 +80,47 @@ func parseKeyValues(args []string) ([]keyValue, error) {
 	return pairs, nil
 }
 
-func (t *Options) addEncodedFiles(builder *builder,
-	unmarshal func([]byte, any) error,
+func (t *Options) addEncodedFiles(values map[string]any,
+	parse func([]byte, map[string]any) error,
 	files []string) error {
 	for _, file := range files {
 		data, err := t.readFile(file)
 		if err != nil {
 			return err
 		}
-		return builder.Unmarshal(data, unmarshal)
+		err = parse(data, values)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func (t *Options) apply(builder *builder) error {
+func (t *Options) apply(values map[string]any) error {
 	var err error
-	unmarshal := yaml.Unmarshal
-	if t.Json {
-		unmarshal = json.Unmarshal
+	parse := ParseProperties
+	format := t.Format
+	var foundParser bool
+	if format != "" {
+		parse, foundParser = propertyParsers[format]
+		if !foundParser {
+			return fmt.Errorf("unknown properties format: %s", format)
+		}
 	}
 	if err == nil {
-		err = t.addEncodedFiles(builder, unmarshal, t.PropertyFiles)
+		err = t.addEncodedFiles(values, parse, t.PropertyFiles)
 	}
 	if err == nil {
-		err = t.addKeyValues(builder, t.KeyValues)
+		err = t.addKeyValues(values, t.KeyValues)
 	}
 	return err
 }
 
 func (t *Options) Values() (map[string]any, error) {
-	var builder builder
-	err := t.apply(&builder)
+	values := make(map[string]any)
+	err := t.apply(values)
 	if err != nil {
 		return nil, err
 	}
-	return builder.values, nil
+	return values, nil
 }

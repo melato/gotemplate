@@ -7,11 +7,13 @@ import (
 	"melato.org/gotemplate"
 	"melato.org/gotemplate/cli"
 	"melato.org/gotemplate/funcs"
+	"melato.org/gotemplate/yaml"
 )
 
 var version string
 
 func main() {
+	gotemplate.SetParser("yaml", yaml.ParseYaml)
 	var op gotemplate.TemplateOp
 	funcs.AddFuncs(&op)
 	cmd := cli.Command(&op)

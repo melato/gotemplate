@@ -17,10 +17,12 @@ var usageData []byte
 func Command(t *gotemplate.TemplateOp) *command.SimpleCommand {
 	var cmd command.SimpleCommand
 	cmd.Command("exec").Flags(t).RunFunc(t.Run)
-	cmd.Command("templates").RunFunc(t.ListTemplates)
-	cmd.Command("funcs").RunFunc(t.ListFuncs)
-	cmd.Command("globals").RunFunc(t.ListGlobals)
-	cmd.Command("func").RunFunc(t.FuncUsage)
+	help := cmd.Command("help")
+	help.Command("templates").RunFunc(t.ListTemplates)
+	help.Command("funcs").RunFunc(t.ListFuncs)
+	help.Command("globals").RunFunc(t.ListGlobals)
+	help.Command("formats").RunFunc(t.ListPropertyFormats)
+	help.Command("func").RunFunc(t.FuncUsage)
 	usage.Apply(&cmd, usageData)
 	return &cmd
 }
