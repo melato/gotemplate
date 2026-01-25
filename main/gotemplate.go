@@ -14,9 +14,9 @@ var version string
 
 func main() {
 	gotemplate.SetParser("yaml", yaml.ParseYaml)
-	var op gotemplate.TemplateOp
-	funcs.AddFuncs(&op)
-	cmd := cli.Command(&op)
+	var funcConfig gotemplate.FuncConfig
+	funcs.AddFuncs(&funcConfig)
+	cmd := cli.Command(&funcConfig)
 	cmd.Command("version").NoConfig().RunFunc(func() {
 		fmt.Printf("%s\n", version)
 	}).Short("print version")

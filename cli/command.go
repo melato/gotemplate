@@ -14,15 +14,17 @@ import (
 //go:embed usage.yaml
 var usageData []byte
 
-func Command(t *gotemplate.TemplateOp) *command.SimpleCommand {
+func Command(fc *gotemplate.FuncConfig) *command.SimpleCommand {
 	var cmd command.SimpleCommand
-	cmd.Command("exec").Flags(t).RunFunc(t.Run)
+	var op gotemplate.TemplateOp
+	op.Funcs = fc.Funcs
+	cmd.Command("exec").Flags(&op).RunFunc(op.Run)
 	help := cmd.Command("help")
-	help.Command("templates").RunFunc(t.ListTemplates)
-	help.Command("funcs").RunFunc(t.ListFuncs)
-	help.Command("globals").RunFunc(t.ListGlobals)
-	help.Command("formats").RunFunc(t.ListPropertyFormats)
-	help.Command("func").RunFunc(t.FuncUsage)
+	help.Command("templates").RunFunc(op.ListTemplates)
+	help.Command("funcs").RunFunc(fc.ListFuncs)
+	help.Command("globals").RunFunc(gotemplate.ListGlobals)
+	help.Command("formats").RunFunc(gotemplate.ListPropertyFormats)
+	help.Command("func").RunFunc(fc.FuncUsage)
 	usage.Apply(&cmd, usageData)
 	return &cmd
 }

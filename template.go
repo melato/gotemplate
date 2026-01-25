@@ -12,6 +12,7 @@ import (
 )
 
 type TemplateOp struct {
+	Funcs        template.FuncMap
 	TemplateName string `name:"t" usage:"template name or file"`
 	OutputFile   string `name:"o" usage:"output file"`
 	FileMode     string `name:"mode" usage:"output file mode"`
@@ -20,43 +21,12 @@ type TemplateOp struct {
 	rightDelim   string
 
 	Options
-	Funcs        template.FuncMap `name:"-"`
-	funcUsage    map[string]string
-	funcUsageTxt [][]byte
-	parsedUsage  bool
 }
 
 func (t *TemplateOp) Init() error {
 	t.FileMode = "0664"
 	t.Delims = "{{,}}"
 	return nil
-}
-
-func (t *TemplateOp) SetFunc(name string, f any) {
-	if t.Funcs == nil {
-		t.Funcs = make(template.FuncMap)
-	}
-	t.Funcs[name] = f
-}
-
-/*
-Add usage for functions
-*/
-func (t *TemplateOp) AddUsage(funcUsage map[string]string) {
-	if t.funcUsage == nil {
-		t.funcUsage = make(map[string]string)
-	}
-	for name, u := range funcUsage {
-		t.funcUsage[name] = u
-	}
-}
-
-/*
-Add usage for functions, in text format
-The usage is parsed when needed
-*/
-func (t *TemplateOp) AddUsageTxt(usageTxt []byte) {
-	t.funcUsageTxt = append(t.funcUsageTxt, usageTxt)
 }
 
 func (t *TemplateOp) Configured() error {

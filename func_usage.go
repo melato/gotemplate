@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func (t *TemplateOp) GetUsage() (map[string]string, error) {
+func (t *FuncConfig) GetUsage() (map[string]string, error) {
 	if !t.parsedUsage {
 		t.funcUsage = make(map[string]string)
 		t.parsedUsage = true
@@ -18,7 +18,7 @@ func (t *TemplateOp) GetUsage() (map[string]string, error) {
 	return t.funcUsage, nil
 }
 
-func (t *TemplateOp) ListFuncs() error {
+func (t *FuncConfig) ListFuncs() error {
 	usage, err := t.GetUsage()
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func (t *TemplateOp) ListFuncs() error {
 	return nil
 }
 
-func (t *TemplateOp) funcSignature(name string, fType reflect.Type, isMethod bool) {
+func (t *FuncConfig) funcSignature(name string, fType reflect.Type, isMethod bool) {
 	n := fType.NumIn()
 	offset := 0
 	if isMethod {
@@ -58,7 +58,7 @@ func (t *TemplateOp) funcSignature(name string, fType reflect.Type, isMethod boo
 	fmt.Printf("%s(%s)\n", name, strings.Join(args, ", "))
 }
 
-func (t *TemplateOp) fUsage(name string, fType reflect.Type) error {
+func (t *FuncConfig) fUsage(name string, fType reflect.Type) error {
 	usage, err := t.GetUsage()
 	if err != nil {
 		return err
@@ -83,7 +83,7 @@ func (t *TemplateOp) fUsage(name string, fType reflect.Type) error {
 	return nil
 }
 
-func (t *TemplateOp) FuncUsage(name string) error {
+func (t *FuncConfig) FuncUsage(name string) error {
 	f, found := t.Funcs[name]
 	if found {
 		fType := reflect.TypeOf(f)
@@ -92,7 +92,7 @@ func (t *TemplateOp) FuncUsage(name string) error {
 	return fmt.Errorf("no such func: %s", name)
 }
 
-func (t *TemplateOp) ListGlobals() error {
+func ListGlobals() error {
 	globals := parseGlobal()
 	names := make([]string, 0, len(globals))
 	for name, _ := range globals {
@@ -108,7 +108,7 @@ func (t *TemplateOp) ListGlobals() error {
 	return nil
 }
 
-func (t *TemplateOp) ListPropertyFormats() {
+func ListPropertyFormats() {
 	names := make([]string, 0, len(propertyParsers))
 	for name, _ := range propertyParsers {
 		names = append(names, name)
