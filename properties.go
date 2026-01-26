@@ -7,11 +7,12 @@ import (
 	"strings"
 )
 
-type parsers map[string]func([]byte, map[any]any) error
+type PropertyParser func([]byte) (map[string]any, error)
+type parsers map[string]PropertyParser
 
 var propertyParsers parsers = make(parsers)
 
-func SetParser(name string, parse func([]byte, map[any]any) error) {
+func SetParser(name string, parse PropertyParser) {
 	propertyParsers[name] = parse
 }
 
@@ -20,7 +21,8 @@ func init() {
 	SetParser("json", ParseJson)
 }
 
-func ParseProperties(data []byte, properties map[any]any) error {
+func ParseProperties(data []byte) (map[string]any, error) {
+	properties := make(map[string]any)
 	for line := range iterLines(bytes.NewReader(data)) {
 		line = strings.TrimLeft(line, " \t")
 		if line == "" || line[0] == '#' {
@@ -28,23 +30,20 @@ func ParseProperties(data []byte, properties map[any]any) error {
 		}
 		name, value, found := strings.Cut(line, ":")
 		if !found {
-			return fmt.Errorf("cannot parse property: %s\n", line)
+			return nil, fmt.Errorf("cannot parse property: %s\n", line)
 		}
 		name = strings.TrimSpace(name)
 		value = strings.TrimSpace(value)
 		properties[name] = value
 	}
-	return nil
+	return properties, nil
 }
 
-func ParseJson(data []byte, properties map[any]any) error {
+func ParseJson(data []byte) (map[string]any, error) {
 	var m map[string]any
 	err := json.Unmarshal(data, &m)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	for key, value := range m {
-		properties[key] = value
-	}
-	return nil
+	return m, nil
 }

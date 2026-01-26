@@ -81,16 +81,19 @@ func parseKeyValues(args []string) ([]keyValue, error) {
 }
 
 func (t *Options) addEncodedFiles(values map[any]any,
-	parse func([]byte, map[any]any) error,
+	parse PropertyParser,
 	files []string) error {
 	for _, file := range files {
 		data, err := t.readFile(file)
 		if err != nil {
 			return err
 		}
-		err = parse(data, values)
+		properties, err := parse(data)
 		if err != nil {
 			return err
+		}
+		for name, value := range properties {
+			values[name] = value
 		}
 	}
 	return nil
