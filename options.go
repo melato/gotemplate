@@ -51,7 +51,7 @@ func (t *Options) ParseKeyValue(keyValue string) ([]string, string) {
 	return keys, value
 }
 
-func (t *Options) addKeyValues(values map[string]any, args []string) error {
+func (t *Options) addKeyValues(values map[any]any, args []string) error {
 	pairs, err := parseKeyValues(args)
 	if err != nil {
 		return err
@@ -80,8 +80,8 @@ func parseKeyValues(args []string) ([]keyValue, error) {
 	return pairs, nil
 }
 
-func (t *Options) addEncodedFiles(values map[string]any,
-	parse func([]byte, map[string]any) error,
+func (t *Options) addEncodedFiles(values map[any]any,
+	parse func([]byte, map[any]any) error,
 	files []string) error {
 	for _, file := range files {
 		data, err := t.readFile(file)
@@ -96,7 +96,7 @@ func (t *Options) addEncodedFiles(values map[string]any,
 	return nil
 }
 
-func (t *Options) apply(values map[string]any) error {
+func (t *Options) apply(values map[any]any) error {
 	var err error
 	parse := ParseProperties
 	format := t.Format
@@ -116,8 +116,8 @@ func (t *Options) apply(values map[string]any) error {
 	return err
 }
 
-func (t *Options) Values() (map[string]any, error) {
-	values := make(map[string]any)
+func (t *Options) Values() (map[any]any, error) {
+	values := make(map[any]any)
 	err := t.apply(values)
 	if err != nil {
 		return nil, err

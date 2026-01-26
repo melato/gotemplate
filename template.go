@@ -29,6 +29,13 @@ func (t *TemplateOp) Init() error {
 	return nil
 }
 
+func (t *TemplateOp) SetFunc(name string, f any) {
+	if t.Funcs == nil {
+		t.Funcs = make(template.FuncMap)
+	}
+	t.Funcs[name] = f
+}
+
 func (t *TemplateOp) Configured() error {
 	if t.Delims != "" {
 		left, right, ok := strings.Cut(t.Delims, ",")

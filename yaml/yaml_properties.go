@@ -5,6 +5,6 @@ import (
 )
 
 // A property parser that uses gopkg.in/yaml.v2
-func ParseYaml(data []byte, properties map[string]any) error {
+func ParseYaml(data []byte, properties map[any]any) error {
 	return yaml.Unmarshal(data, &properties)
 }

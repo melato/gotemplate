@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-type parsers map[string]func([]byte, map[string]any) error
+type parsers map[string]func([]byte, map[any]any) error
 
 var propertyParsers parsers = make(parsers)
 
-func SetParser(name string, parse func([]byte, map[string]any) error) {
+func SetParser(name string, parse func([]byte, map[any]any) error) {
 	propertyParsers[name] = parse
 }
 
@@ -20,7 +20,7 @@ func init() {
 	SetParser("json", ParseJson)
 }
 
-func ParseProperties(data []byte, properties map[string]any) error {
+func ParseProperties(data []byte, properties map[any]any) error {
 	for line := range iterLines(bytes.NewReader(data)) {
 		line = strings.TrimLeft(line, " \t")
 		if line == "" || line[0] == '#' {
@@ -37,6 +37,14 @@ func ParseProperties(data []byte, properties map[string]any) error {
 	return nil
 }
 
-func ParseJson(data []byte, properties map[string]any) error {
-	return json.Unmarshal(data, &properties)
+func ParseJson(data []byte, properties map[any]any) error {
+	var m map[string]any
+	err := json.Unmarshal(data, &m)
+	if err != nil {
+		return err
+	}
+	for key, value := range m {
+		properties[key] = value
+	}
+	return nil
 }
