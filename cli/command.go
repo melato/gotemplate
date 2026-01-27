@@ -9,6 +9,7 @@ import (
 	"melato.org/command"
 	"melato.org/command/usage"
 	"melato.org/gotemplate"
+	"melato.org/gotemplate/build"
 )
 
 //go:embed usage.yaml
@@ -19,6 +20,11 @@ func Command(fc *gotemplate.FuncConfig) *command.SimpleCommand {
 	var op gotemplate.TemplateOp
 	op.Funcs = fc.Funcs
 	cmd.Command("exec").Flags(&op).RunFunc(op.Run)
+
+	var buildOp build.BuildOp
+	buildOp.Funcs = fc.Funcs
+	cmd.Command("build").Flags(&buildOp).RunFunc(buildOp.Build)
+
 	help := cmd.Command("help")
 	help.Command("templates").RunFunc(op.ListTemplates)
 	help.Command("funcs").RunFunc(fc.ListFuncs)

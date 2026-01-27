@@ -12,7 +12,8 @@ import (
 )
 
 type TemplateOp struct {
-	Funcs        template.FuncMap
+	Funcs template.FuncMap `name:"-"`
+
 	TemplateName string `name:"t" usage:"template name or file"`
 	OutputFile   string `name:"o" usage:"output file"`
 	FileMode     string `name:"mode" usage:"output file mode"`

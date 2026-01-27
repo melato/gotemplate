@@ -22,6 +22,14 @@ commands:
         If -json is specified, the property files are parsed as JSON.
         Otherwise, they are parsed as YAML.        
         In both cases, they must unmarshal into a map[string]any
+  build:
+    short: execute multiple templates
+    long: |
+      Uses a configuration file to determine all parameters.
+      This command uses two types of templates:      
+      - Common Templates defined by template.dir and template.patterns.  They are always available.
+      - Each template specified in input_dir, is parsed and executed separately from its siblings,
+      but it has access to the common templates.
   help:
     short: provide information
     commands:
