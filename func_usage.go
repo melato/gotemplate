@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func (t *FuncConfig) GetUsage() (map[string]string, error) {
+func (t *Config) GetUsage() (map[string]string, error) {
 	if !t.parsedUsage {
 		t.funcUsage = make(map[string]string)
 		t.parsedUsage = true
@@ -18,7 +18,7 @@ func (t *FuncConfig) GetUsage() (map[string]string, error) {
 	return t.funcUsage, nil
 }
 
-func (t *FuncConfig) ListFuncs() error {
+func (t *Config) ListFuncs() error {
 	usage, err := t.GetUsage()
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func (t *FuncConfig) ListFuncs() error {
 	return nil
 }
 
-func (t *FuncConfig) funcSignature(name string, fType reflect.Type, isMethod bool) {
+func (t *Config) funcSignature(name string, fType reflect.Type, isMethod bool) {
 	n := fType.NumIn()
 	offset := 0
 	if isMethod {
@@ -58,7 +58,7 @@ func (t *FuncConfig) funcSignature(name string, fType reflect.Type, isMethod boo
 	fmt.Printf("%s(%s)\n", name, strings.Join(args, ", "))
 }
 
-func (t *FuncConfig) fUsage(name string, fType reflect.Type) error {
+func (t *Config) fUsage(name string, fType reflect.Type) error {
 	usage, err := t.GetUsage()
 	if err != nil {
 		return err
@@ -83,7 +83,7 @@ func (t *FuncConfig) fUsage(name string, fType reflect.Type) error {
 	return nil
 }
 
-func (t *FuncConfig) FuncUsage(name string) error {
+func (t *Config) FuncUsage(name string) error {
 	f, found := t.Funcs[name]
 	if found {
 		fType := reflect.TypeOf(f)

@@ -1,0 +1,7 @@
+input_dir: ./
+input_ext: .tpl
+output_ext: .md 
+template:
+    dir: common
+    patterns:
+    - "*.tpl"

@@ -15,9 +15,14 @@ type BuildOp struct {
 	Funcs template.FuncMap `name:"-"`
 
 	ConfigFile string `name:"c" usage:"build config file"`
+	OutputDir  string `name:"o" usage:"output dir"`
 }
 
 func (t *BuildOp) Build(args ...string) error {
+	if t.ConfigFile == "" {
+		return fmt.Errorf("missing config file")
+	}
+	configDir := filepath.Dir(t.ConfigFile)
 	var config Config
 	data, err := os.ReadFile(t.ConfigFile)
 	if err == nil {
@@ -28,7 +33,7 @@ func (t *BuildOp) Build(args ...string) error {
 	}
 	commonTpl := template.New("")
 	commonTpl.Funcs(t.Funcs)
-	f := os.DirFS(config.Template.Dir)
+	f := os.DirFS(ResolvePath(configDir, config.Template.Dir))
 	_, err = commonTpl.ParseFS(f, config.Template.Patterns...)
 	if err != nil {
 		return err
@@ -37,9 +42,14 @@ func (t *BuildOp) Build(args ...string) error {
 	for name, value := range config.Properties {
 		model[name] = value
 	}
-	entries, err := os.ReadDir(config.InputDir)
+	inputDir := ResolvePath(configDir, config.InputDir)
+	entries, err := os.ReadDir(inputDir)
 	if err != nil {
 		return err
+	}
+	outputDir := t.OutputDir
+	if outputDir == "" {
+		outputDir = config.OutputDir
 	}
 	for _, entry := range entries {
 		if entry.IsDir() {
@@ -50,8 +60,8 @@ func (t *BuildOp) Build(args ...string) error {
 		if ext != config.InputExtension {
 			continue
 		}
-		inputFile := filepath.Join(config.InputDir, name)
-		outputFile := filepath.Join(config.OutputDir, strings.TrimSuffix(name, ext)+config.OutputExtension)
+		inputFile := filepath.Join(inputDir, name)
+		outputFile := filepath.Join(outputDir, strings.TrimSuffix(name, ext)+config.OutputExtension)
 
 		tpl, err := commonTpl.Clone()
 		if err != nil {

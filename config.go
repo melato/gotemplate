@@ -4,14 +4,16 @@ import (
 	"text/template"
 )
 
-type FuncConfig struct {
+// Programmatic configuration of templates
+// Use to add funcs to the FuncMap
+type Config struct {
 	Funcs        template.FuncMap
 	funcUsage    map[string]string
 	funcUsageTxt [][]byte
 	parsedUsage  bool
 }
 
-func (t *FuncConfig) SetFunc(name string, f any) {
+func (t *Config) SetFunc(name string, f any) {
 	if t.Funcs == nil {
 		t.Funcs = make(template.FuncMap)
 	}
@@ -21,7 +23,7 @@ func (t *FuncConfig) SetFunc(name string, f any) {
 /*
 Add usage for functions
 */
-func (t *FuncConfig) AddUsage(funcUsage map[string]string) {
+func (t *Config) AddUsage(funcUsage map[string]string) {
 	if t.funcUsage == nil {
 		t.funcUsage = make(map[string]string)
 	}
@@ -34,6 +36,6 @@ func (t *FuncConfig) AddUsage(funcUsage map[string]string) {
 Add usage for functions, in text format
 The usage is parsed when needed
 */
-func (t *FuncConfig) AddUsageTxt(usageTxt []byte) {
+func (t *Config) AddUsageTxt(usageTxt []byte) {
 	t.funcUsageTxt = append(t.funcUsageTxt, usageTxt)
 }

@@ -15,7 +15,7 @@ import (
 //go:embed usage.yaml
 var usageData []byte
 
-func Command(fc *gotemplate.FuncConfig) *command.SimpleCommand {
+func Command(fc *gotemplate.Config) *command.SimpleCommand {
 	var cmd command.SimpleCommand
 	var op gotemplate.TemplateOp
 	op.Funcs = fc.Funcs
