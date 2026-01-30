@@ -1,4 +1,4 @@
-package yaml
+package gotemplate
 
 import (
 	_ "embed"

@@ -101,7 +101,7 @@ func (t *Options) addEncodedFiles(values map[any]any,
 
 func (t *Options) apply(values map[any]any) error {
 	var err error
-	parse := ParseProperties
+	parse := ParseYaml
 	format := t.Format
 	var foundParser bool
 	if format != "" {
