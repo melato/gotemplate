@@ -1,21 +1,22 @@
 gotemplate provides a small Go command-line program that executes templates,
 using the text/template package from the Go standard library.
 
+It is also a library that can be extended in order to add custom functions to the templates.
+
 # Goals
 gotemplate is designed to facilitate producing markdown documentation for code.
 I created it so that I can include working code samples that can be easily tested,
 instead of copying them by hand to a README file.
 
 It is not suitable for producing HTML.
-An HTML generator should have more features, such as layouts (themes),
-and also use html/template instead of text/template.
+An HTML generator should use html/template instead of text/template,
+and also have more features, such as layouts (themes).
 
 # Design
 Executing Go templates requires three main inputs:
 
 ## A Function Map
 A Function map (template.FuncMap) provides custom functions.
-The gotemplate does not define any custom functions, when used as a library.
 
 The gotemplate module defines the *file* function that reads a file. 
 The library does not add it automatically to the templates, but the main executable does.
@@ -96,13 +97,11 @@ import (
 	"melato.org/gotemplate"
 	"melato.org/gotemplate/cli"
 	"melato.org/gotemplate/funcs"
-	"melato.org/gotemplate/yaml"
 )
 
 var version string
 
 func main() {
-	gotemplate.SetParser("yaml", yaml.ParseYaml)
 	var config gotemplate.Config
 	funcs.AddFuncs(&config)
 	cmd := cli.Command(&config)
@@ -115,14 +114,15 @@ func main() {
 ```
 
 
-## exec
+## commands
+### exec
 The *exec* command uses command line arguments to specify everything.  It:
 - parses a set of associated templates
 - builds a data model
 - executes one template and produces one output file
 
-## build
-The *build* command uses yaml configuration file to specify most parameters.
+### build
+The *build* command uses a yaml configuration file to specify most parameters.
 The configuration file specifies:
 - a set of common templates
 - a map to uses as the data model
@@ -131,5 +131,5 @@ The configuration file specifies:
 Each input template is parsed after cloning the common templates.
 Therefore it has access to the common templates, but not to other input templates.
 
-## help
+### help
 The *help* subcommands are meant to provide documentation for the template functions.
