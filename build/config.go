@@ -5,12 +5,12 @@ import (
 )
 
 type Config struct {
-	InputDir        string         `yaml:"input_dir"`
-	OutputDir       string         `yaml:"output_dir"`
-	InputExtension  string         `yaml:"input_ext"`
-	OutputExtension string         `yaml:"output_ext"`
-	Template        TemplateConfig `yaml:"template"`
-	Properties      map[string]any `yaml:"properties"`
+	InputDir        string           `yaml:"input_dir"`
+	OutputDir       string           `yaml:"output_dir"`
+	InputExtension  string           `yaml:"input_ext"`
+	OutputExtension string           `yaml:"output_ext"`
+	Templates       []TemplateConfig `yaml:"templates"`
+	Properties      map[string]any   `yaml:"properties"`
 }
 
 type TemplateConfig struct {

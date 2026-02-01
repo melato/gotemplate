@@ -73,10 +73,10 @@ which uses the configuration file:
 input_dir: ./
 input_ext: .tpl
 output_ext: .md 
-template:
-    dir: common
-    patterns:
-    - "*.tpl"
+templates:
+- dir: common
+  patterns:
+  - "*.tpl"
 
 ```
 

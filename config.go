@@ -1,13 +1,9 @@
 package gotemplate
 
-import (
-	"text/template"
-)
-
 // Programmatic configuration of templates
 // Use to add funcs to the FuncMap
 type Config struct {
-	Funcs        template.FuncMap
+	Funcs        Funcs
 	funcUsage    map[string]string
 	funcUsageTxt [][]byte
 	parsedUsage  bool
@@ -15,7 +11,7 @@ type Config struct {
 
 func (t *Config) SetFunc(name string, f any) {
 	if t.Funcs == nil {
-		t.Funcs = make(template.FuncMap)
+		t.Funcs = make(map[string]any)
 	}
 	t.Funcs[name] = f
 }

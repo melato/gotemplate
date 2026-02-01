@@ -9,13 +9,16 @@ import (
 	"text/template"
 
 	"gopkg.in/yaml.v2"
+	"melato.org/gotemplate"
 )
 
 type BuildOp struct {
-	Funcs template.FuncMap `name:"-"`
+	Funcs gotemplate.Funcs `name:"-"`
 
 	ConfigFile string `name:"c" usage:"build config file"`
-	OutputDir  string `name:"o" usage:"output dir"`
+	InputDir   string `name:"i" usage:"input dir, overrides config input_dir"`
+	OutputDir  string `name:"o" usage:"output dir, overrides config output_dir"`
+	Verbose    bool   `name:"v" usage:"verbose, print template names"`
 }
 
 func (t *BuildOp) Build(args ...string) error {
@@ -23,6 +26,10 @@ func (t *BuildOp) Build(args ...string) error {
 		return fmt.Errorf("missing config file")
 	}
 	configDir := filepath.Dir(t.ConfigFile)
+	funcs, err := t.Funcs.CreateFuncMap(configDir)
+	if err != nil {
+		return err
+	}
 	var config Config
 	data, err := os.ReadFile(t.ConfigFile)
 	if err == nil {
@@ -32,24 +39,37 @@ func (t *BuildOp) Build(args ...string) error {
 		return err
 	}
 	commonTpl := template.New("")
-	commonTpl.Funcs(t.Funcs)
-	f := os.DirFS(ResolvePath(configDir, config.Template.Dir))
-	_, err = commonTpl.ParseFS(f, config.Template.Patterns...)
-	if err != nil {
-		return err
+	commonTpl.Funcs(funcs)
+	for _, tc := range config.Templates {
+		dir := ResolvePath(configDir, tc.Dir)
+		if t.Verbose {
+			fmt.Printf("using templates from %s.  patterns: %v\n", dir, tc.Patterns)
+		}
+		f := os.DirFS(dir)
+		_, err = commonTpl.ParseFS(f, tc.Patterns...)
+		if err != nil {
+			return err
+		}
 	}
 	model := make(map[any]any)
 	for name, value := range config.Properties {
 		model[name] = value
 	}
-	inputDir := ResolvePath(configDir, config.InputDir)
-	entries, err := os.ReadDir(inputDir)
-	if err != nil {
-		return err
+	inputDir := t.InputDir
+	if inputDir == "" {
+		inputDir = ResolvePath(configDir, config.InputDir)
 	}
 	outputDir := t.OutputDir
 	if outputDir == "" {
-		outputDir = config.OutputDir
+		outputDir = ResolvePath(configDir, config.OutputDir)
+	}
+	err = os.MkdirAll(outputDir, os.FileMode(0755))
+	if err != nil {
+		return err
+	}
+	entries, err := os.ReadDir(inputDir)
+	if err != nil {
+		return err
 	}
 	for _, entry := range entries {
 		if entry.IsDir() {
@@ -67,11 +87,17 @@ func (t *BuildOp) Build(args ...string) error {
 		if err != nil {
 			return err
 		}
+		if t.Verbose {
+			fmt.Printf("parsing %s\n", inputFile)
+		}
 		_, err = tpl.ParseFiles(inputFile)
 		if err != nil {
 			return err
 		}
 		var buf bytes.Buffer
+		if t.Verbose {
+			fmt.Printf("execute %s\n", name)
+		}
 		err = tpl.ExecuteTemplate(&buf, name, model)
 		if err != nil {
 			return fmt.Errorf("ExecuteTemplate: %w", err)
