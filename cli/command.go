@@ -23,6 +23,7 @@ func Command(fc *gotemplate.Config) *command.SimpleCommand {
 
 	var buildOp build.BuildOp
 	buildOp.Funcs = fc.Funcs
+	buildOp.Templates = fc.Templates
 	cmd.Command("build").Flags(&buildOp).RunFunc(buildOp.Build)
 
 	help := cmd.Command("help")

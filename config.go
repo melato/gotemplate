@@ -4,6 +4,7 @@ package gotemplate
 // Use to add funcs to the FuncMap
 type Config struct {
 	Funcs        Funcs
+	Templates    []TemplateSet
 	funcUsage    map[string]string
 	funcUsageTxt [][]byte
 	parsedUsage  bool

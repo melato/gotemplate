@@ -54,10 +54,7 @@ func (t *TemplateOp) newTemplate() (*template.Template, error) {
 	if t.leftDelim != "" || t.rightDelim != "" {
 		tpl.Delims(t.leftDelim, t.rightDelim)
 	}
-	funcs, err := t.Funcs.CreateFuncMap(".")
-	if err != nil {
-		return nil, err
-	}
+	funcs := t.Funcs.CreateFuncMap()
 	tpl.Funcs(funcs)
 	return tpl, nil
 }

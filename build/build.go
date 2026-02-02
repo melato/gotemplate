@@ -15,6 +15,9 @@ import (
 type BuildOp struct {
 	Funcs gotemplate.Funcs `name:"-"`
 
+	// pre-configured templates
+	Templates []gotemplate.TemplateSet `name:"-"`
+
 	ConfigFile string `name:"c" usage:"build config file"`
 	InputDir   string `name:"i" usage:"input dir, overrides config input_dir"`
 	OutputDir  string `name:"o" usage:"output dir, overrides config output_dir"`
@@ -26,10 +29,7 @@ func (t *BuildOp) Build(args ...string) error {
 		return fmt.Errorf("missing config file")
 	}
 	configDir := filepath.Dir(t.ConfigFile)
-	funcs, err := t.Funcs.CreateFuncMap(configDir)
-	if err != nil {
-		return err
-	}
+	funcs := t.Funcs.CreateFuncMap()
 	var config Config
 	data, err := os.ReadFile(t.ConfigFile)
 	if err == nil {
@@ -40,6 +40,12 @@ func (t *BuildOp) Build(args ...string) error {
 	}
 	commonTpl := template.New("")
 	commonTpl.Funcs(funcs)
+	for _, tc := range t.Templates {
+		_, err = commonTpl.ParseFS(tc.FS, tc.Patterns...)
+		if err != nil {
+			return err
+		}
+	}
 	for _, tc := range config.Templates {
 		dir := ResolvePath(configDir, tc.Dir)
 		if t.Verbose {
