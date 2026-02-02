@@ -1,12 +1,18 @@
 package gotemplate
 
 import (
+	"io/fs"
 	"text/template"
 )
 
 type BaseConfig struct {
 	Funcs     Funcs
 	Templates []TemplateSet
+}
+
+type TemplateSet struct {
+	FS       fs.FS
+	Patterns []string
 }
 
 func (t *BaseConfig) Apply(tpl *template.Template) error {
