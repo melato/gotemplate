@@ -18,12 +18,11 @@ var usageData []byte
 func Command(fc *gotemplate.Config) *command.SimpleCommand {
 	var cmd command.SimpleCommand
 	var op gotemplate.TemplateOp
-	op.Funcs = fc.Funcs
+	op.Base = fc.BaseConfig
 	cmd.Command("exec").Flags(&op).RunFunc(op.Run)
 
 	var buildOp build.BuildOp
-	buildOp.Funcs = fc.Funcs
-	buildOp.Templates = fc.Templates
+	buildOp.Base = fc.BaseConfig
 	cmd.Command("build").Flags(&buildOp).RunFunc(buildOp.Build)
 
 	help := cmd.Command("help")

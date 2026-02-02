@@ -3,8 +3,7 @@ package gotemplate
 // Programmatic configuration of templates
 // Use to add funcs to the FuncMap
 type Config struct {
-	Funcs        Funcs
-	Templates    []TemplateSet
+	BaseConfig
 	funcUsage    map[string]string
 	funcUsageTxt [][]byte
 	parsedUsage  bool

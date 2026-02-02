@@ -12,7 +12,7 @@ import (
 )
 
 type TemplateOp struct {
-	Funcs Funcs `name:"-"`
+	Base BaseConfig `name:"-"`
 
 	TemplateName string `name:"t" usage:"template name or file"`
 	OutputFile   string `name:"o" usage:"output file"`
@@ -30,12 +30,14 @@ func (t *TemplateOp) Init() error {
 	return nil
 }
 
+/*
 func (t *TemplateOp) SetFunc(name string, f any) {
 	if t.Funcs == nil {
 		t.Funcs = make(Funcs)
 	}
 	t.Funcs[name] = f
 }
+*/
 
 func (t *TemplateOp) Configured() error {
 	if t.Delims != "" {
@@ -54,9 +56,8 @@ func (t *TemplateOp) newTemplate() (*template.Template, error) {
 	if t.leftDelim != "" || t.rightDelim != "" {
 		tpl.Delims(t.leftDelim, t.rightDelim)
 	}
-	funcs := t.Funcs.CreateFuncMap()
-	tpl.Funcs(funcs)
-	return tpl, nil
+	err := t.Base.Apply(tpl)
+	return tpl, err
 }
 
 func (t *TemplateOp) buildSingleTemplate() (*template.Template, error) {
@@ -121,16 +122,15 @@ func listTemplates(tpl *template.Template) {
 }
 
 func (t *TemplateOp) ListTemplates(args ...string) error {
-	if len(args) == 0 {
-		return fmt.Errorf("missing template files")
-	}
 	tpl, err := t.newTemplate()
 	if err != nil {
 		return err
 	}
-	tpl, err = tpl.ParseFiles(args...)
-	if err != nil {
-		return err
+	if len(args) > 0 {
+		_, err = tpl.ParseFiles(args...)
+		if err != nil {
+			return err
+		}
 	}
 	listTemplates(tpl)
 	return nil
