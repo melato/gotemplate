@@ -99,7 +99,7 @@ func (t *Options) addEncodedFiles(values map[any]any,
 	return nil
 }
 
-func (t *Options) apply(values map[any]any) error {
+func (t *Options) Apply(values map[any]any) error {
 	var err error
 	parse := ParseYaml
 	format := t.Format
@@ -117,13 +117,4 @@ func (t *Options) apply(values map[any]any) error {
 		err = t.addKeyValues(values, t.KeyValues)
 	}
 	return err
-}
-
-func (t *Options) Values() (map[any]any, error) {
-	values := make(map[any]any)
-	err := t.apply(values)
-	if err != nil {
-		return nil, err
-	}
-	return values, nil
 }

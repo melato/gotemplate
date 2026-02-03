@@ -27,6 +27,7 @@ func Command(fc *gotemplate.Config) *command.SimpleCommand {
 
 	help := cmd.Command("help")
 	help.Command("templates").RunFunc(op.ListTemplates)
+	help.Command("properties").RunFunc(op.ListProperties)
 	help.Command("funcs").RunFunc(fc.ListFuncs)
 	help.Command("globals").RunFunc(gotemplate.ListGlobals)
 	help.Command("formats").RunFunc(gotemplate.ListPropertyFormats)

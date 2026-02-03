@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"text/template"
@@ -136,12 +137,33 @@ func (t *TemplateOp) ListTemplates(args ...string) error {
 	return nil
 }
 
+func (t *TemplateOp) ListProperties() error {
+	values := t.Base.CreateModel()
+	err := t.Apply(values)
+	if err != nil {
+		return err
+	}
+	names := make([]string, 0, len(values))
+	for key, _ := range values {
+		name, isString := key.(string)
+		if isString {
+			names = append(names, name)
+		}
+	}
+	sort.Strings(names)
+	for _, name := range names {
+		fmt.Printf("%s: %v\n", name, values[name])
+	}
+	return nil
+}
+
 func (t *TemplateOp) Run(args ...string) error {
 	tpl, err := t.buildTemplate(args)
 	if err != nil {
 		return err
 	}
-	values, err := t.Values()
+	values := t.Base.CreateModel()
+	err = t.Apply(values)
 	if err != nil {
 		return err
 	}

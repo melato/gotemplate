@@ -9,13 +9,6 @@ type Config struct {
 	parsedUsage  bool
 }
 
-func (t *Config) SetFunc(name string, f any) {
-	if t.Funcs == nil {
-		t.Funcs = make(map[string]any)
-	}
-	t.Funcs[name] = f
-}
-
 /*
 Add usage for functions
 */

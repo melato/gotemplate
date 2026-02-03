@@ -50,7 +50,7 @@ func (t *BuildOp) Build(args ...string) error {
 			return err
 		}
 	}
-	model := make(map[any]any)
+	model := t.Base.CreateModel()
 	for name, value := range config.Properties {
 		model[name] = value
 	}
